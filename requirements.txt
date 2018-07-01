@@ -1,5 +1,7 @@
 alabaster==0.7.11
 argh==0.26.2
+atomicwrites==1.1.5
+attrs==18.1.0
 Babel==2.6.0
 certifi==2018.4.16
 chardet==3.0.4
@@ -13,12 +15,16 @@ itsdangerous==0.24
 Jinja2==2.10
 livereload==2.5.2
 MarkupSafe==1.0
+more-itertools==4.2.0
 packaging==17.1
 pathtools==0.1.2
+pluggy==0.6.0
 port-for==0.3.1
 psycopg2==2.7.5
+py==1.5.4
 Pygments==2.2.0
 pyparsing==2.2.0
+pytest==3.6.2
 pytz==2018.5
 PyYAML==3.12
 requests==2.19.1

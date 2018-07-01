@@ -13,3 +13,7 @@ docs/
 __pycache__/
 *.py[cod]
 *$py.class
+
+# Coverage
+.coverage
+htmlcov
