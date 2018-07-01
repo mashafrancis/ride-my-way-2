@@ -1,7 +1,27 @@
-from flask import Flask
-app = Flask(__name__)
+from flask import Flask, jsonify
+from flask_restful import Api
+from flask_jwt import JWTError
 
 
-@app.route("/")
-def hello():
-    return "Welcome to Ride My Way!"
+from instance.config import app_config
+
+
+def create_app(config_name):
+    app = Flask(__name__, instance_relative_config=True)
+
+    # Load the config file
+    app.config.from_object(app_config[config_name])
+
+    api = Api(app)
+    # Setup of the Api Routing
+    api.add_resource(Rides, '/v1/rides/')
+    api.add_resource(Ride, '/v1/rides/<ride_id>')
+
+    @app.errorhandler(JWTError)
+    def auth_error_handler(err):
+        return jsonify({'message': 'Could not authorize.'}, 401)
+
+    if __name__ == '__main__':
+        app.run(debug=True)
+
+    return app
