@@ -6,6 +6,8 @@ venv/
 
 .idea/
 
+.pytest_cache
+
 # Sphinx documentation
 docs/
 
