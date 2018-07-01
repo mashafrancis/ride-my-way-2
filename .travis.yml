@@ -11,7 +11,7 @@ install:
 # run scripts
 script:
   - coverage erase
-  - coverage run -m pytest
+  - coverage run -m run.py
 
 after_success:
   - codecov
