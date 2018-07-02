@@ -1,0 +1,21 @@
+# Environment
+.env
+.venv
+env/
+venv/
+
+.idea/
+
+.pytest_cache
+
+# Sphinx documentation
+docs/
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Coverage
+.coverage
+htmlcov

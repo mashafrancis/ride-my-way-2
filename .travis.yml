@@ -1,0 +1,16 @@
+language: python
+
+python:
+    - "3.6"
+
+# install dependencies
+install:
+  - pip install -r requirements.txt
+  - pip install codecov
+
+# run scripts
+script:
+  - coverage erase
+
+after_success:
+  - codecov
