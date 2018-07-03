@@ -1,5 +1,5 @@
-import psycopg2
 from flask_restful import Resource, reqparse
+from app.models import db
 
 
 class User:
@@ -14,11 +14,7 @@ class User:
 
     @classmethod
     def find_by_username(cls, username):
-        connection = psycopg2.connect(dbname='andela',
-                                      host='localhost',
-                                      user='masha',
-                                      password='bhakita')
-
+        connection = db
         cursor = connection.cursor()
         result = cursor.execute("SELECT * FROM users WHERE username=%s", (username,))
         row = result.fetchone()
@@ -32,11 +28,7 @@ class User:
 
     @classmethod
     def find_by_id(cls, _id):
-        connection = psycopg2.connect(dbname='andela',
-                                      host='localhost',
-                                      user='masha',
-                                      password='bhakita')
-
+        connection = db
         cursor = connection.cursor()
         result = cursor.execute("SELECT * FROM users WHERE id=%s", (_id,))
         row = result.fetchone()
@@ -88,11 +80,7 @@ class UserRegister(Resource):
         if User.find_by_username(data['username']):
             return {"message": "Username has already been taken."}, 400
 
-        connection = psycopg2.connect(dbname='andela',
-                                      host='localhost',
-                                      user='masha',
-                                      password='bhakita')
-
+        connection = db
         cursor = connection.cursor()
 
         app_user = (data['firstname'],

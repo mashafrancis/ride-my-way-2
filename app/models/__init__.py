@@ -33,11 +33,10 @@ def create_tables():
         """,
         """ 
         CREATE TABLE IF NOT EXISTS rides (
-            ride_id SERIAL PRIMARY KEY NOT NULL,
-            username VARCHAR(80) NOT NULL,
+            ride_id SERIAL PRIMARY KEY,
             origin VARCHAR(80) NOT NULL,
             destination VARCHAR(80) NOT NULL,
-            date_of_ride VARCHAR(80) NOT NULL,
+            date VARCHAR(80) NOT NULL,
             time VARCHAR(80) NOT NULL)
         """)
     connection = None
