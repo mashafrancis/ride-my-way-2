@@ -1,10 +1,13 @@
 import psycopg2
 import psycopg2.extras
 
-db = psycopg2.connect(dbname='andela',
-                      host='localhost',
-                      user='masha',
-                      password='bhakita')
+
+def dbconn():
+    connection = psycopg2.connect(dbname='andela',
+                                  host='localhost',
+                                  user='masha',
+                                  password='bhakita')
+    return connection
 
 
 def create_tables():
@@ -19,8 +22,7 @@ def create_tables():
             last_name VARCHAR(80) NOT NULL,
             username VARCHAR(80) UNIQUE,
             email VARCHAR(80) UNIQUE,
-            password VARCHAR(80) NOT NULL,
-            car_plate_number VARCHAR(80) NULL
+            password VARCHAR(80) NOT NULL
         )
         """,
         """ 
@@ -41,7 +43,7 @@ def create_tables():
         """)
     connection = None
     try:
-        connection = db
+        connection = dbconn()
 
         cursor = connection.cursor()
         # create tables

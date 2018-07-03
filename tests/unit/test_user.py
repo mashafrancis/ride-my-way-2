@@ -4,9 +4,9 @@ data = {
     '1': {
         "firstname": "Francis",
         "lastname": "Masha",
-        "email": "francismasha@gmail.com",
-        "password": "blablabla",
-        "confirm_password": "blablabla"
+        "email": "masha@gmail.com",
+        "password": "bhakita",
+        "confirm_password": "bhakita"
     },
     '2': {
         "email": "francismasha@gmail.com",
@@ -28,7 +28,7 @@ data = {
 
 def test_create_user(test_client):
     res = test_client.post('/v1/auth/signup')
-    assert res.status_code == 200
+    assert res.status_code == 201
 
 
 def test_edit_user(test_client):
