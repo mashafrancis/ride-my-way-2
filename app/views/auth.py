@@ -2,14 +2,14 @@ from werkzeug.security import safe_str_cmp
 from app.views.users import User
 
 
-def authenticate(first_name, password):
+def authenticate(username, password):
     """
     :param first_name:
     :param username: The username in string format
     :param password: The un-encrypted password in string format
     :return:
     """
-    user = User.find_by_username(first_name)
+    user = User.find_by_username(username)
     if user and safe_str_cmp(user.password, password):
         return user
 
