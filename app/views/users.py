@@ -1,8 +1,9 @@
 from flask_restful import Resource, reqparse
+from flask_jwt import jwt_required, current_identity
 from app.models import dbconn
 
 
-class User:
+class User(Resource):
     def __init__(self, _id, first_name, last_name, username, email, password):
         self.id = _id
         self.firstname = first_name
@@ -15,8 +16,8 @@ class User:
     def find_by_username(cls, username):
         connection = dbconn()
         cursor = connection.cursor()
-        result = cursor.execute("SELECT * FROM users WHERE username = %s", (username,))
-        row = result.fetchone()
+        cursor.execute("SELECT * FROM users WHERE username = %s", (username,))
+        row = cursor.fetchone()
         if row:
             user = cls(*row)
         else:
@@ -41,35 +42,35 @@ class User:
 
 
 class UserRegister(Resource):
-    parser = reqparse.RequestParser()
-    parser.add_argument('firstname',
-                        type=str,
-                        required=True,
-                        help='This field cannot be left blank')
+    def __init__(self):
+        self.parser = reqparse.RequestParser()
+        self.parser.add_argument('firstname',
+                                 type=str,
+                                 required=True,
+                                 help='This field cannot be left blank')
 
-    parser.add_argument('lastname',
-                        type=str,
-                        required=True,
-                        help='This field cannot be left blank')
+        self.parser.add_argument('lastname',
+                                 type=str,
+                                 required=True,
+                                 help='This field cannot be left blank')
 
-    parser.add_argument('username',
-                        type=str,
-                        required=True,
-                        help='This field cannot be left blank')
+        self.parser.add_argument('username',
+                                 type=str,
+                                 required=True,
+                                 help='This field cannot be left blank')
 
-    parser.add_argument('email',
-                        type=str,
-                        required=True,
-                        help='This field cannot be left blank')
+        self.parser.add_argument('email',
+                                 type=str,
+                                 required=True,
+                                 help='This field cannot be left blank')
 
-    parser.add_argument('password',
-                        type=str,
-                        required=True,
-                        help='This field cannot be left blank')
+        self.parser.add_argument('password',
+                                 type=str,
+                                 required=True,
+                                 help='This field cannot be left blank')
 
-    @staticmethod
-    def post():
-        data = UserRegister.parser.parse_args()
+    def post(self):
+        data = self.parser.parse_args()
 
         connection = dbconn()
         cursor = connection.cursor()
@@ -86,28 +87,6 @@ class UserRegister(Resource):
         connection.commit()
         connection.close()
 
-        return {"message": "User was created successfully."}, 200
+        return {"message": "User was created successfully."}, 201
 
 
-class UserLogin(Resource):
-    @staticmethod
-    def post():
-        connection = dbconn()
-        cursor = connection.cursor()
-
-        user_login = (['username'], ['password'])
-
-        cursor.execute("INSERT INTO users (username, password)"
-                       "VALUES(%s, %s)", user_login)
-
-        connection.commit()
-        connection.close()
-
-        if not username:
-            return {"message": "Missing username parameter"}, 400
-        if not password:
-            return {"message": "Missing password parameter"}, 400
-        if username != 'test' or password != 'test':
-            return {"message": "Bad username or password"}
-
-        return {"message": "Your have logged in successfully"}, 200
