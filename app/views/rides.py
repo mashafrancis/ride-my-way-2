@@ -1,25 +1,29 @@
+import psycopg2
 from flask_restful import Resource, reqparse
 from flask_jwt import jwt_required
-from app.models import db
+from app.models import dbconn
 
 
 class Rides(Resource):
     @staticmethod
     def get():
-        connection = db
-        cursor = connection.cursor()
+        try:
+            connection = dbconn()
+            cursor = connection.cursor()
+            cursor.execute("SELECT * FROM rides")
+            result = cursor.fetchall()
+            rides = []
+            for row in result:
+                rides.append({'ride_id': row[0],
+                              'origin': row[1],
+                              'destination': row[2],
+                              'date': row[3],
+                              'time': row[4]})
+                connection.close()
+            return {'Rides Available': rides}, 200
 
-        query = "SELECT * FROM rides"
-        result = cursor.execute(query)
-        rides = []
-        for row in result:
-            rides.append({'ride_id': row[0],
-                          'username': row[1],
-                          'origin': row[2],
-                          'destination': row[3],
-                          'date': row[4],
-                          'time': row[5]})
-            return {'rides': rides}
+        except psycopg2.DatabaseError as error:
+            return {'error': str(error)}
 
 
 class Ride(Resource):
@@ -47,75 +51,66 @@ class Ride(Resource):
                         required=True,
                         help='This field cannot be left blank')
 
-    def get(self, ride_id):
+    @staticmethod
+    def get(ride_id):
         """
         Get a single ride available
         :param ride_id:
         """
-        ride = self.find_by_ride_id(ride_id)
-        if ride:
-            return ride
-        return {'message': 'Ride offer not available'}, 404
-
-    @classmethod
-    def find_by_ride_id(cls, ride_id):
-        connection = db
-        cursor = connection.cursor()
-
-        result = cursor.execute("SELECT * FROM rides WHERE ride_id = %s", (ride_id,))
-        ride = result.fetchone()
-        connection.close()
-
-        if ride:
-            return {'ride': {'ride_id': ride[0],
-                             'origin': ride[1],
-                             'destination': ride[2],
-                             'date': ride[3],
-                             'time': ride[4]}}
-
-    def post(self, ride_id):
-        data = Ride.parser.parse_args()
-
-        ride_offer = {'ride_id': ride_id,
-                      'origin': data['origin'],
-                      'destination': data['destination'],
-                      'date': data['date'],
-                      'time': data['time']}
-
         try:
-            self.insert(ride_offer)
-        except:
-            return {'message': 'Sorry, an error occured while editing this ride offer'}
+            connection = dbconn()
+            cursor = connection.cursor()
 
-        return ride_offer, 201
+            cursor.execute("SELECT * FROM rides WHERE ride_id = %s", (ride_id,))
+            ride = cursor.fetchone()
+            connection.close()
 
-    @classmethod
-    def insert(cls, ride):
-        connection = db
-        cursor = connection.cursor()
+            if not ride:
+                return {'error': 'ride not found'}, 404
+            else:
+                return {'ride': {'ride_id': ride[0],
+                                 'origin': ride[1],
+                                 'destination': ride[2],
+                                 'date': ride[3],
+                                 'time': ride[4]}}, 200
+        except psycopg2.DatabaseError as error:
+            return {'error': str(error)}
 
-        ride = (ride['origin'],
-                ride['origin'],
-                ride['destination'],
-                ride['data'],
-                ride['time'])
+    @staticmethod
+    def post():
+        try:
+            data = Ride.parser.parse_args()
+            connection = dbconn()
+            cursor = connection.cursor()
 
-        cursor.execute("INSERT INTO rides (ride_id, origin, destination, date, time)"
-                       "VALUES(DEFAULT, %s, %s, %s, %s)", ride)
+            ride_offer = (data['origin'],
+                          data['destination'],
+                          data['date'],
+                          data['time'])
 
-        connection.commit()
-        connection.close()
+            cursor.execute("INSERT INTO rides (ride_id, origin, destination, date, time)"
+                           "VALUES(DEFAULT, %s, %s, %s, %s)", ride_offer)
 
-    def delete(self, ride_id):
-        connection = db
-        cursor = connection.curssor()
+            connection.commit()
+            connection.close()
+        except psycopg2.DatabaseError as error:
+            return {'error': str(error)}
+        return {"message": "Your ride offer was created successfully."}, 201
 
-        cursor.execute("DELETE FROM rides WHERE ride_id=%s", (ride_id,))
+    @staticmethod
+    def delete(ride_id):
+        try:
+            connection = dbconn()
+            cursor = connection.curssor()
 
-        connection.commit()
-        connection.close()
+            cursor.execute("DELETE FROM rides WHERE ride_id=%s", (ride_id,))
 
-        return {'message': 'Your ride offer has been removed'}
+            connection.commit()
+            connection.close()
+
+        except psycopg2.DatabaseError as error:
+            return {'error': str(error)}
+        return {'message': 'Your ride offer has been removed'}, 200
 
     def put(self, ride_id):
         data = Ride.parser.parse_args()
@@ -143,7 +138,7 @@ class Ride(Resource):
 
     @classmethod
     def update(cls, ride_id, origin, destination, date, time):
-        connection = db
+        connection = dbconn()
         cursor = connection.curssor()
 
         cursor.execute("UPDATE rides SET origin = %s, destination = %s, date = %s, time = %s WHERE ride_id = %s",
