@@ -2,6 +2,7 @@
 Test functionality of all endpoints on all the methods involved with rides
 """
 import json
+import pytest
 
 data = {
     '1': {
@@ -35,8 +36,8 @@ def test_get_single_ride(test_client):
     """
     Test GET Api for a single ride
     """
-    res = test_client.get('/v1/rides/')
-    assert res.status_code == 200
+    response = test_client.get('/v1/rides/')
+    assert response.status_code == 200
 
 
 def test_get_ride_unavailable(test_client):

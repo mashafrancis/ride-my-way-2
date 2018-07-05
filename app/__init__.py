@@ -3,9 +3,10 @@ from flask_restful import Api
 from flask_jwt import JWTError, JWT
 
 from app.models import create_tables
-from app.views.rides import Ride, Rides
+from app.views.rides import Rides, Ride
 from app.views.users import UserRegister, User
 from app.views.auth import authenticate, identity
+from app.views.requests import Request
 
 from instance.config import app_config
 
@@ -22,9 +23,10 @@ def create_app(config_name):
     create_tables()
 
     api = Api(app)
+
     # Setup of the Api Routing
-    api.add_resource(Rides, '/v1/rides')
-    api.add_resource(Ride, '/v1/rides/<int:ride_id>', '/v1/rides')
+    api.add_resource(Ride, '/v1/rides')
+    api.add_resource(Rides, '/v1/rides/<int:ride_id>', '/v1/rides')
     api.add_resource(UserRegister, '/v1/auth/signup')
     # api.add_resource(User, '/v1/auth/login')
 

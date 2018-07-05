@@ -17,7 +17,7 @@ def create_tables():
     commands = (
         """
         CREATE TABLE IF NOT EXISTS users (
-            id SERIAL PRIMARY KEY,
+            user_id SERIAL PRIMARY KEY,
             first_name VARCHAR(80) NOT NULL,
             last_name VARCHAR(80) NOT NULL,
             username VARCHAR(80) UNIQUE,
@@ -27,10 +27,10 @@ def create_tables():
         """,
         """ 
         CREATE TABLE IF NOT EXISTS requests (
-            request_id SERIAL primary key,
-            user_id int references users_test(user_id),
-            status VARCHAR(100) NOT NULL,
-            accepted BOOLEAN NOT NULL
+            request_id SERIAL PRIMARY KEY,
+            ride_id INT NOT NULL,
+            user_id INT NOT NULL,
+            status VARCHAR(100) NOT NULL
         )
         """,
         """ 

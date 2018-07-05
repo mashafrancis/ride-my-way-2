@@ -5,31 +5,6 @@ from app.models import dbconn
 
 
 class Rides(Resource):
-    @staticmethod
-    def get():
-        try:
-            connection = dbconn()
-            cursor = connection.cursor()
-            cursor.execute("SELECT * FROM rides")
-            result = cursor.fetchall()
-            rides = []
-            for row in result:
-                rides.append({'ride_id': row[0],
-                              'origin': row[1],
-                              'destination': row[2],
-                              'date': row[3],
-                              'time': row[4]})
-                connection.close()
-            return {'Rides Available': rides}, 200
-
-        except psycopg2.DatabaseError as error:
-            return {'error': str(error)}
-
-
-class Ride(Resource):
-    """
-    Contains the method for add, update and deleting a ride
-    """
     parser = reqparse.RequestParser()
     parser.add_argument('origin',
                         type=str,
@@ -79,7 +54,7 @@ class Ride(Resource):
     @staticmethod
     def post():
         try:
-            data = Ride.parser.parse_args()
+            data = Rides.parser.parse_args()
             connection = dbconn()
             cursor = connection.cursor()
 
@@ -113,7 +88,7 @@ class Ride(Resource):
         return {'message': 'Your ride offer has been removed'}, 200
 
     def put(self, ride_id):
-        data = Ride.parser.parse_args()
+        data = Rides.parser.parse_args()
 
         ride = self.find_by_ride_id(ride_id)
 
@@ -139,10 +114,32 @@ class Ride(Resource):
     @classmethod
     def update(cls, ride_id, origin, destination, date, time):
         connection = dbconn()
-        cursor = connection.curssor()
+        cursor = connection.cursor()
 
         cursor.execute("UPDATE rides SET origin = %s, destination = %s, date = %s, time = %s WHERE ride_id = %s",
                        (origin, destination, date, time, ride_id))
 
         connection.commit()
         connection.close()
+
+
+class Ride(Resource):
+    @staticmethod
+    def get():
+        try:
+            connection = dbconn()
+            cursor = connection.cursor()
+            cursor.execute("SELECT * FROM rides")
+            result = cursor.fetchall()
+            rides = []
+            for row in result:
+                rides.append({'ride_id': row[0],
+                              'origin': row[1],
+                              'destination': row[2],
+                              'date': row[3],
+                              'time': row[4]})
+                connection.close()
+            return {'Rides Available': rides}, 200
+
+        except psycopg2.DatabaseError as error:
+            return {'error': str(error)}
