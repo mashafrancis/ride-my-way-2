@@ -28,6 +28,7 @@ def create_app(config_name):
     api.add_resource(Ride, '/v1/rides')
     api.add_resource(Rides, '/v1/rides/<int:ride_id>', '/v1/rides')
     api.add_resource(UserRegister, '/v1/auth/signup')
+    api.add_resource(Request, '/v1/rides/<int:ride_id>/requests')
     # api.add_resource(User, '/v1/auth/login')
 
     jwt = JWT(app, authenticate, identity)

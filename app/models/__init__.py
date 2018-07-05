@@ -30,7 +30,7 @@ def create_tables():
             request_id SERIAL PRIMARY KEY,
             ride_id INT NOT NULL,
             user_id INT NOT NULL,
-            status VARCHAR(100) NOT NULL
+            status VARCHAR(100) DEFAULT 'Pending'
         )
         """,
         """ 

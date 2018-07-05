@@ -112,6 +112,7 @@ class Rides(Resource):
             return updated_ride
 
     @classmethod
+    @jwt_required
     def update(cls, ride_id, origin, destination, date, time):
         connection = dbconn()
         cursor = connection.cursor()
