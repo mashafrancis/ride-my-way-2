@@ -32,14 +32,14 @@ def test_create_user(test_client):
 
 
 def test_edit_user(test_client):
-    response = test_client.put('/v1/users/1',
+    response = test_client.put('/v1/rides/1',
                                data=json.dumps(data['3']),
                                headers={'Content-Type': 'application/json'})
     assert response.status_code == 200
 
 
 def test_delete_user(test_client):
-    response = test_client.delete('/v1/users/1')
+    response = test_client.delete('/v1/rides/1')
     assert response.status_code == 200
 
 

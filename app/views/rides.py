@@ -1,7 +1,7 @@
 import psycopg2
 from flask_restful import Resource, reqparse
 from flask_jwt import jwt_required
-from app.models import dbconn
+from app.models.ride import dbconn, RideModel
 
 
 class Rides(Resource):
@@ -37,11 +37,12 @@ class Rides(Resource):
             cursor = connection.cursor()
 
             cursor.execute("SELECT * FROM rides WHERE ride_id = %s", (ride_id,))
+
             ride = cursor.fetchone()
             connection.close()
 
             if not ride:
-                return {'error': 'ride not found'}, 404
+                return {'Error': 'Ride not found'}, 404
             else:
                 return {'ride': {'ride_id': ride[0],
                                  'origin': ride[1],
@@ -49,10 +50,15 @@ class Rides(Resource):
                                  'date': ride[3],
                                  'time': ride[4]}}, 200
         except psycopg2.DatabaseError as error:
-            return {'error': str(error)}
+            return {'Error': str(error)}
 
     @staticmethod
+    @jwt_required
     def post():
+        """
+        Create a new ride offer for users to request
+        :return:
+        """
         try:
             data = Rides.parser.parse_args()
             connection = dbconn()
@@ -70,13 +76,14 @@ class Rides(Resource):
             connection.close()
         except psycopg2.DatabaseError as error:
             return {'error': str(error)}
-        return {"message": "Your ride offer was created successfully."}, 201
+        return {"Message": "Hooray! Your ride offer was created successfully."}, 201
 
     @staticmethod
+    @jwt_required
     def delete(ride_id):
         try:
             connection = dbconn()
-            cursor = connection.curssor()
+            cursor = connection.cursor()
 
             cursor.execute("DELETE FROM rides WHERE ride_id=%s", (ride_id,))
 
@@ -85,12 +92,32 @@ class Rides(Resource):
 
         except psycopg2.DatabaseError as error:
             return {'error': str(error)}
-        return {'message': 'Your ride offer has been removed'}, 200
+        return {'Message': 'Sadly, You have removed your ride offer'}, 200
 
+    @classmethod
+    def insert(cls, ride):
+        connection = dbconn()
+        cursor = connection.cursor()
+
+        updated_ride = (['origin'],
+                ['destination'],
+                ['date'],
+                ['time'])
+
+        cursor.execute("INSERT INTO rides VALUES(%s, %s, %s, %s)", (ride,))
+
+        if ride is None:
+            try:
+                Rides.insert(updated_ride)
+            except:
+                return {"Message": "An error occured while updating your ride."}, 401
+            return updated_ride
+
+    @jwt_required
     def put(self, ride_id):
         data = Rides.parser.parse_args()
 
-        ride = self.find_by_ride_id(ride_id)
+        ride = RideModel.find_by_ride_id(ride_id)
 
         updated_ride = {'ride_id': ride_id,
                         'origin': data['origin'],
@@ -100,13 +127,13 @@ class Rides(Resource):
 
         if ride is None:
             try:
-                self.insert(updated_ride)
+                Rides.insert(updated_ride)
             except:
                 return {"message": "Error occured while posting your ride offer"}, 500
 
         else:
             try:
-                self.update(updated_ride)
+                Rides.update(updated_ride)
             except:
                 return {"message": "Error occured while updating your ride offer"}, 500
             return updated_ride

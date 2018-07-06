@@ -52,7 +52,7 @@ def test_create_ride(test_client):
     """
     Test a POST Api
     """
-    response = test_client.post('/v1/rides/rideId',
+    response = test_client.post('/v1/rides/1',
                                 data=json.dumps(data['1']),
                                 headers={'Content-Type': 'application/json'})
     assert response.status_code == 201

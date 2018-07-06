@@ -1,92 +1,107 @@
-from flask_restful import Resource, reqparse
-from flask_jwt import jwt_required, current_identity
+import psycopg2
+from flask_jwt_extended import create_access_token
+from flask_restful import Resource, reqparse, inputs
+from werkzeug.security import check_password_hash, generate_password_hash
 from app.models import dbconn
 
 
-class User(Resource):
-    def __init__(self, _id, first_name, last_name, username, email, password):
-        self.id = _id
-        self.firstname = first_name
-        self.lastname = last_name
-        self.username = username
-        self.email = email
-        self.password = password
-
-    @classmethod
-    def find_by_username(cls, username):
-        connection = dbconn()
-        cursor = connection.cursor()
-        cursor.execute("SELECT * FROM users WHERE username = %s", (username,))
-        row = cursor.fetchone()
-        if row:
-            user = cls(*row)
-        else:
-            user = None
-
-        connection.close()
-        return user
-
-    @classmethod
-    def find_by_id(cls, _id):
-        connection = dbconn()
-        cursor = connection.cursor()
-        result = cursor.execute("SELECT * FROM users WHERE id=%s", (_id,))
-        row = result.fetchone()
-        if row:
-            user = cls(*row)
-        else:
-            user = None
-
-        connection.close()
-        return user
-
-
 class UserRegister(Resource):
-    def __init__(self):
-        self.parser = reqparse.RequestParser()
-        self.parser.add_argument('firstname',
-                                 type=str,
-                                 required=True,
-                                 help='This field cannot be left blank')
+    parser = reqparse.RequestParser()
+    parser.add_argument('firstname',
+                        type=inputs.regex(r"(.*\S.*)"),
+                        location='json',
+                        required=True,
+                        help='This field cannot be left blank')
 
-        self.parser.add_argument('lastname',
-                                 type=str,
-                                 required=True,
-                                 help='This field cannot be left blank')
+    parser.add_argument('lastname',
+                        type=inputs.regex(r"(.*\S.*)"),
+                        location='json',
+                        required=True,
+                        help='This field cannot be left blank')
 
-        self.parser.add_argument('username',
-                                 type=str,
-                                 required=True,
-                                 help='This field cannot be left blank')
+    parser.add_argument('username',
+                        type=inputs.regex(r"(.*\S.*)"),
+                        location='json',
+                        required=True,
+                        help='This field cannot be left blank')
 
-        self.parser.add_argument('email',
-                                 type=str,
-                                 required=True,
-                                 help='This field cannot be left blank')
+    parser.add_argument('email',
+                        required=True,
+                        location='json',
+                        help='This field cannot be left blank',
+                        type=inputs.regex(r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)"))
 
-        self.parser.add_argument('password',
-                                 type=str,
-                                 required=True,
-                                 help='This field cannot be left blank')
+    parser.add_argument('password',
+                        type=inputs.regex(r"(.*\S.*)"),
+                        location='json',
+                        required=True,
+                        help='This field cannot be left blank')
 
     def post(self):
         data = self.parser.parse_args()
 
-        connection = dbconn()
-        cursor = connection.cursor()
+        try:
+            connection = dbconn()
+            cursor = connection.cursor()
 
-        user_register = (data['firstname'],
-                         data['lastname'],
-                         data['username'],
-                         data['email'],
-                         data['password'])
+            firstname = data['firstname'],
+            lastname = data['lastname'],
+            username = data['username'],
+            email = data['email'],
+            password = data['password']
 
-        cursor.execute("INSERT INTO users (id, first_name, last_name, username, email, password)"
-                       "VALUES(DEFAULT, %s, %s, %s, %s, %s)", user_register)
+            password_hash = generate_password_hash(password)
+            data = [firstname, lastname, username, email, password_hash]
 
-        connection.commit()
-        connection.close()
+            cursor.execute("INSERT INTO users (user_id, firstname, lastname, username, email, password)"
+                           "VALUES(DEFAULT, %s, %s, %s, %s, %s)", data)
 
-        return {"message": "User was created successfully."}, 201
+            connection.commit()
+            connection.close()
+        except psycopg2.DatabaseError as error:
+            return {'error': str(error)}
+
+        return {"Message": "User was created successfully."}, 201
 
 
+class UserLogin(Resource):
+    parser = reqparse.RequestParser()
+    parser.add_argument('email',
+                        required=True,
+                        location='json',
+                        help='This field cannot be left blank',
+                        type=inputs.regex(r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)"))
+
+    parser.add_argument('password',
+                        type=inputs.regex(r"(.*\S.*)"),
+                        required=True,
+                        location='json',
+                        help='This field cannot be left blank')
+
+    def post(self):
+        args = self.parser.parse_args()
+        email = args['email']
+        password = args['password']
+
+        try:
+            connection = dbconn()
+            cursor = connection.cursor()
+
+            cursor.execute("SELECT * FROM users WHERE email = %s;", ([args['email']]))
+        except psycopg2.DatabaseError as error:
+            return {'Status': 'Failed', 'Data': error}, 500
+        results = cursor.fetchone()
+
+        if not results:
+            return {'error': 'Authentication failed user unknown'}
+
+        username = results[3]
+        stored_password = results[5]
+
+        if check_password_hash(stored_password, password):
+            access_token = create_access_token(email, username)
+
+            return {"Success": "Login successful",
+                    "access_token": access_token}
+
+        return {'error': 'Wrong credentials'}, 404

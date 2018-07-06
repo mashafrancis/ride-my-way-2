@@ -1,3 +1,5 @@
+jsonschema
+passlib
 alabaster==0.7.11
 aniso8601==3.0.2
 argh==0.26.2

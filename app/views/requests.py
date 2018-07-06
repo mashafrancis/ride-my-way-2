@@ -1,6 +1,5 @@
 import psycopg2
 from flask_restful import Resource
-from flask_jwt import jwt_required
 from app.models import dbconn
 from flask_jwt_extended import jwt_required
 
@@ -41,7 +40,7 @@ class Request(Resource):
             connection.commit()
             cursor.close()
 
-            return {'Message': 'Your request has been updated'}
+            return {'Message': 'Your request has been accepted'}, 201
 
         except psycopg2.DatabaseError as error:
             return {'error': str(error)}
